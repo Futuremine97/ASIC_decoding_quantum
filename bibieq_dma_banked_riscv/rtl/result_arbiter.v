@@ -14,20 +14,10 @@ module result_arbiter #(
     input  wire              m_ready
 );
     reg rr_sel;
-    reg choose_s1;
+    wire choose_s1;
     wire fire;
 
-    always @* begin
-        choose_s1 = 1'b0;
-        if (s0_valid & ~s1_valid)
-            choose_s1 = 1'b0;
-        else if (~s0_valid & s1_valid)
-            choose_s1 = 1'b1;
-        else if (s0_valid & s1_valid)
-            choose_s1 = rr_sel;
-        else
-            choose_s1 = 1'b0;
-    end
+    assign choose_s1 = s1_valid & (~s0_valid | rr_sel);
 
     assign m_valid  = choose_s1 ? s1_valid : s0_valid;
     assign m_data   = choose_s1 ? s1_data  : s0_data;

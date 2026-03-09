@@ -8,35 +8,34 @@ module engine_approx #(
     output reg  [MAX_SITES-1:0] fault_mask,
     output reg  [MAX_SITES*Q-1:0] cumulative_bus
 );
-    reg [Q-1:0] a0, a1, a2, a3, a4;
-    reg [Q-1:0] r0, r1, r2, r3, r4;
-    reg [Q:0] c0, c1, c2, c3, c4;
+    integer i;
+    reg [Q-1:0] a [0:MAX_SITES-1];
+    reg [Q-1:0] r [0:MAX_SITES-1];
+    reg [Q:0]   c [0:MAX_SITES-1];
 
     always @* begin
-        a0 = a_bus[(0*Q) +: Q];
-        a1 = a_bus[(1*Q) +: Q];
-        a2 = a_bus[(2*Q) +: Q];
-        a3 = a_bus[(3*Q) +: Q];
-        a4 = a_bus[(4*Q) +: Q];
+        // Defaults to avoid any latch inference in combinational logic
+        cumulative_bus = {MAX_SITES*Q{1'b0}};
+        fault_mask     = {MAX_SITES{1'b0}};
 
-        r0 = rand_bus[(0*Q) +: Q];
-        r1 = rand_bus[(1*Q) +: Q];
-        r2 = rand_bus[(2*Q) +: Q];
-        r3 = rand_bus[(3*Q) +: Q];
-        r4 = rand_bus[(4*Q) +: Q];
+        for (i = 0; i < MAX_SITES; i = i + 1) begin
+            a[i] = a_bus[(i*Q) +: Q];
+            r[i] = rand_bus[(i*Q) +: Q];
+            c[i] = { (Q+1){1'b0} };
+        end
 
-        c0 = a0;
-        c1 = a0 + a1;
-        c2 = a0 + a1 + a2;
-        c3 = a0 + a1 + a2 + a3;
-        c4 = a0 + a1 + a2 + a3 + a4;
+        if (MAX_SITES > 0) begin
+            c[0] = {1'b0, a[0]};
+            cumulative_bus[(0*Q) +: Q] = c[0][Q-1:0];
+            if (0 < nsites)
+                fault_mask[0] = (r[0] < c[0][Q-1:0]);
+        end
 
-        cumulative_bus = {c4[Q-1:0], c3[Q-1:0], c2[Q-1:0], c1[Q-1:0], c0[Q-1:0]};
-
-        fault_mask[0] = (nsites >= 3'd1) && (r0 < c0[Q-1:0]);
-        fault_mask[1] = (nsites >= 3'd2) && (r1 < c1[Q-1:0]);
-        fault_mask[2] = (nsites >= 3'd3) && (r2 < c2[Q-1:0]);
-        fault_mask[3] = (nsites >= 3'd4) && (r3 < c3[Q-1:0]);
-        fault_mask[4] = (nsites >= 3'd5) && (r4 < c4[Q-1:0]);
+        for (i = 1; i < MAX_SITES; i = i + 1) begin
+            c[i] = c[i-1] + a[i];
+            cumulative_bus[(i*Q) +: Q] = c[i][Q-1:0];
+            if (i < nsites)
+                fault_mask[i] = (r[i] < c[i][Q-1:0]);
+        end
     end
 endmodule
