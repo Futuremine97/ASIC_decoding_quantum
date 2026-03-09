@@ -146,7 +146,31 @@ If the even/odd banks are balanced and DMA is not the bottleneck, sustained thro
 - AXI write path is **single‑beat** for simplicity. If you need higher bandwidth, add burst aggregation in `axi_write_master.v`.
 - No 4‑KB boundary protection is implemented for bursts.
 - Assumes descriptor/result buffers are **DATA_W‑aligned**.
-- The testbenches are for the core; AXI‑level testbenches are not included.
+- AXI‑level testbench is functional (not a full protocol‑compliance suite).
+
+## Verification and coverage
+
+An AXI‑level testbench is included to improve functional coverage of the SoC wrapper:
+
+- `tb/tb_bibieq_dma_banked_riscv_axi.v`
+
+It provides:
+
+- AXI‑Lite register programming and polling
+- AXI read/write memory model with backpressure
+- Scoreboard checks (result count, address ordering, seg_idx set, FAST‑mode exact fields)
+- Coverage counters for parity, `use_4ec`, `phase`, `r`, `ds`, burst bins, FIFO high‑watermark hits, and backpressure cycles
+
+Run:
+
+- `make tb_riscv_axi`
+- `make tb_riscv_axi_fast` (FAST mode)
+
+Optional plusargs:
+
+- `+DESC_COUNT=...`
+- `+BURST_LEN=...`
+- `+SEED=...`
 
 ## Suggested next steps
 

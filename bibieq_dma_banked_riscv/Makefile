@@ -18,7 +18,7 @@ RTL := rtl/lfsr16.v \
        rtl/bibieq_dma_banked_riscv_fast_top.v
 
 all:
-	@echo "Targets: tb_fifo tb_top"
+	@echo "Targets: tb_fifo tb_top tb_riscv_axi tb_riscv_axi_fast"
 
 tb_fifo:
 	iverilog -g2005 -o sim_fifo $(RTL) tb/tb_dual_bank_fifo.v
@@ -28,5 +28,13 @@ tb_top:
 	iverilog -g2005 -o sim_top $(RTL) tb/tb_bibieq_dma_banked_top.v
 	vvp sim_top
 
+tb_riscv_axi:
+	iverilog -g2005 -o sim_riscv_axi $(RTL) tb/tb_bibieq_dma_banked_riscv_axi.v
+	vvp sim_riscv_axi
+
+tb_riscv_axi_fast:
+	iverilog -g2005 -o sim_riscv_axi_fast $(RTL) -P tb_bibieq_dma_banked_riscv_axi.FAST_MODE=1 tb/tb_bibieq_dma_banked_riscv_axi.v
+	vvp sim_riscv_axi_fast
+
 clean:
-	rm -f sim_fifo sim_top
+	rm -f sim_fifo sim_top sim_riscv_axi sim_riscv_axi_fast
