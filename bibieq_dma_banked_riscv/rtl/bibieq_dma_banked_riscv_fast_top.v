@@ -11,7 +11,8 @@ module bibieq_dma_banked_riscv_fast_top #(
     parameter L = 6,
     parameter M = 6,
     parameter UW = 4,
-    parameter VW = 4
+    parameter VW = 4,
+    parameter IDLE_GATE = 1
 ) (
     input  wire                    aclk,
     input  wire                    aresetn,
@@ -80,6 +81,7 @@ module bibieq_dma_banked_riscv_fast_top #(
         .M(M),
         .UW(UW),
         .VW(VW),
+        .IDLE_GATE(IDLE_GATE),
         .FAST_MODE(1)
     ) u_top (
         .aclk(aclk),

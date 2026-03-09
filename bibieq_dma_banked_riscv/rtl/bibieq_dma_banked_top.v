@@ -15,7 +15,8 @@ module bibieq_dma_banked_top #(
     parameter FAST_MODE = 0,
     parameter FAST_MODE_EVEN = FAST_MODE,
     parameter FAST_MODE_ODD  = FAST_MODE,
-    parameter SYNC_START = 1
+    parameter SYNC_START = 1,
+    parameter IDLE_GATE = 1
 ) (
     input  wire                clk,
     input  wire                rst,
@@ -152,6 +153,7 @@ module bibieq_dma_banked_top #(
     segment_worker #(
         .Q(Q), .MAX_SITES(MAX_SITES), .UW(UW), .VW(VW), .L(L), .M(M),
         .FAST_MODE(FAST_MODE_EVEN),
+        .IDLE_GATE(IDLE_GATE),
         .SEED0(16'h1357), .SEED1(16'h2468), .SEED2(16'h369C),
         .SEED3(16'h48AD), .SEED4(16'h55AA), .SEED5(16'hA55A)
     ) u_even_worker (
@@ -168,6 +170,7 @@ module bibieq_dma_banked_top #(
     segment_worker #(
         .Q(Q), .MAX_SITES(MAX_SITES), .UW(UW), .VW(VW), .L(L), .M(M),
         .FAST_MODE(FAST_MODE_ODD),
+        .IDLE_GATE(IDLE_GATE),
         .SEED0(16'h1111), .SEED1(16'h2222), .SEED2(16'h3333),
         .SEED3(16'h4444), .SEED4(16'h5555), .SEED5(16'h6666)
     ) u_odd_worker (

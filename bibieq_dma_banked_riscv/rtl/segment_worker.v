@@ -6,6 +6,7 @@ module segment_worker #(
     parameter L = 6,
     parameter M = 6,
     parameter FAST_MODE = 0,
+    parameter IDLE_GATE = 1,
     parameter SEED0 = 16'h1234,
     parameter SEED1 = 16'h2345,
     parameter SEED2 = 16'h3456,
@@ -44,18 +45,9 @@ module segment_worker #(
     wire [UW-1:0] u;
     wire [VW-1:0] v;
 
-    assign seg_idx  = desc_data[63:56];
-    assign use_4ec  = desc_data[55];
-    assign phase    = desc_data[54:52];
-    assign r        = desc_data[51:49];
-    assign ds       = desc_data[48];
-    assign e_q      = desc_data[47:32];
-    assign q_q      = desc_data[31:16];
-    assign u        = desc_data[15:12];
-    assign v        = desc_data[11:8];
-
     wire [15:0] rand0, rand1, rand2, rand3, rand4, rand5;
     wire desc_fire;
+    wire [63:0] desc_data_eff;
 
     wire        checkpoint_valid;
     wire [1:0]  checkpoint_id;
@@ -82,6 +74,24 @@ module segment_worker #(
 
     assign desc_ready  = ~out_valid_r | result_ready;
     assign desc_fire   = desc_valid & desc_ready;
+
+    generate
+        if (IDLE_GATE) begin : gen_idle_gate
+            assign desc_data_eff = desc_fire ? desc_data : 64'd0;
+        end else begin : gen_no_idle_gate
+            assign desc_data_eff = desc_data;
+        end
+    endgenerate
+
+    assign seg_idx  = desc_data_eff[63:56];
+    assign use_4ec  = desc_data_eff[55];
+    assign phase    = desc_data_eff[54:52];
+    assign r        = desc_data_eff[51:49];
+    assign ds       = desc_data_eff[48];
+    assign e_q      = desc_data_eff[47:32];
+    assign q_q      = desc_data_eff[31:16];
+    assign u        = desc_data_eff[15:12];
+    assign v        = desc_data_eff[11:8];
     assign result_valid = out_valid_r;
     assign result_data  = out_data_r;
 

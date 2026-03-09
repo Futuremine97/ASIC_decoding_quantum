@@ -200,6 +200,15 @@ Asynchronous inputs are synchronized before they enter the core logic:
 
 If `start` is generated in the same clock domain, the synchronizer only adds a small (2‑cycle) latency.
 
+## Toggle reduction (clock enable / glitch reduction)
+
+To reduce unnecessary internal switching, `segment_worker` gates its descriptor decode when idle:
+
+- `IDLE_GATE=1` (default) masks `desc_data` unless a valid transfer fires.
+- This prevents combinational logic (router/schedule/posterior/engine) from toggling when no descriptor is being accepted.
+
+You can disable this by setting `IDLE_GATE=0` at the top‑level if needed for debug/visibility.
+
 ## Suggested next steps
 
 1. Add burst aggregation on the write path
