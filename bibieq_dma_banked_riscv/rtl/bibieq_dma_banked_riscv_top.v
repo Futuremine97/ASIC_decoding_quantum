@@ -70,6 +70,7 @@ module bibieq_dma_banked_riscv_top #(
     output wire                    m_axi_bready
 );
     wire                  core_rst;
+    wire                  aresetn_sync;
     wire                  start_pulse;
     wire                  soft_reset_pulse;
     wire [ADDR_W-1:0]     desc_base;
@@ -98,7 +99,13 @@ module bibieq_dma_banked_riscv_top #(
     wire                  mem_wlast;
     wire                  mem_wready;
 
-    assign core_rst = ~aresetn | soft_reset_pulse;
+    reset_sync u_reset_sync (
+        .clk(aclk),
+        .arst_n(aresetn),
+        .srst_n(aresetn_sync)
+    );
+
+    assign core_rst = ~aresetn_sync | soft_reset_pulse;
 
     axi_lite_regs #(
         .ADDR_W(ADDR_W),
@@ -108,7 +115,7 @@ module bibieq_dma_banked_riscv_top #(
         .FIFO_LEVEL_W(FIFO_PTR_W)
     ) u_regs (
         .clk(aclk),
-        .aresetn(aresetn),
+        .aresetn(aresetn_sync),
         .s_axi_awaddr(s_axi_awaddr),
         .s_axi_awprot(s_axi_awprot),
         .s_axi_awvalid(s_axi_awvalid),

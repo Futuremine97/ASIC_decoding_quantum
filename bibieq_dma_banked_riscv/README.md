@@ -191,6 +191,15 @@ Optional plusargs:
 - `+BURST_LEN=...`
 - `+SEED=...`
 
+## Metastability protection
+
+Asynchronous inputs are synchronized before they enter the core logic:
+
+- `aresetn` is synchronized (async assert, sync deassert) via `rtl/reset_sync.v`
+- The core `start` signal is passed through a 2‑FF synchronizer (`rtl/sync_2ff.v`) inside `bibieq_dma_banked_top.v`
+
+If `start` is generated in the same clock domain, the synchronizer only adds a small (2‑cycle) latency.
+
 ## Suggested next steps
 
 1. Add burst aggregation on the write path

@@ -14,7 +14,8 @@ module bibieq_dma_banked_top #(
     parameter VW = 4,
     parameter FAST_MODE = 0,
     parameter FAST_MODE_EVEN = FAST_MODE,
-    parameter FAST_MODE_ODD  = FAST_MODE
+    parameter FAST_MODE_ODD  = FAST_MODE,
+    parameter SYNC_START = 1
 ) (
     input  wire                clk,
     input  wire                rst,
@@ -78,6 +79,21 @@ module bibieq_dma_banked_top #(
     wire               merged_ready;
     wire               store_busy;
 
+    wire start_sync;
+
+    generate
+        if (SYNC_START) begin : gen_start_sync
+            sync_2ff #(.INIT(1'b0)) u_start_sync (
+                .clk(clk),
+                .rst(rst),
+                .d(start),
+                .q(start_sync)
+            );
+        end else begin : gen_start_passthru
+            assign start_sync = start;
+        end
+    endgenerate
+
     dma_desc_fetch #(
         .ADDR_W(ADDR_W),
         .DATA_W(DATA_W),
@@ -85,7 +101,7 @@ module bibieq_dma_banked_top #(
     ) u_fetch (
         .clk(clk),
         .rst(rst),
-        .start(start),
+        .start(start_sync),
         .base_addr(desc_src_base),
         .desc_count(desc_count),
         .burst_len(rd_burst_len),
@@ -186,7 +202,7 @@ module bibieq_dma_banked_top #(
     ) u_store (
         .clk(clk),
         .rst(rst),
-        .start(start),
+        .start(start_sync),
         .base_addr(result_dst_base),
         .total_results(desc_count),
         .busy(store_busy),
