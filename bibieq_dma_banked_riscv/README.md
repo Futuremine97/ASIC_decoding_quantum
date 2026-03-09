@@ -12,6 +12,7 @@ The core processing pipeline, data formats, and algorithmic structure are the sa
 - `rtl/bibieq_dma_banked_riscv_top.v`
 - `rtl/bibieq_dma_banked_riscv_fast_top.v` (FAST mode)
 - `rtl/bibieq_dma_banked_riscv_apb_top.v` (APB3 control)
+- `rtl/bibieq_dma_banked_riscv_ahb_top.v` (AHB-Lite control, base `0x2000_0000`)
 
 ## Architecture overview
 
@@ -77,6 +78,10 @@ A 32‑bit AXI4‑Lite slave provides configuration and status.
 ### APB3 (control/status)
 
 APB3 slave provides the same register map and semantics as AXI‑Lite. Signals: `PADDR`, `PSEL`, `PENABLE`, `PWRITE`, `PWDATA`, `PRDATA`, `PREADY`, `PSLVERR`.
+
+### AHB‑Lite (control/status)
+
+AHB‑Lite slave provides the same register map and semantics as AXI‑Lite. Default base address is `0x2000_0000` with a 4KB window. Signals: `HADDR`, `HWRITE`, `HTRANS`, `HSEL`, `HREADY`, `HWDATA`, `HRDATA`, `HREADYOUT`, `HRESP`.
 
 **Start sequence**
 
