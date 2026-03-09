@@ -16,6 +16,10 @@ The core processing pipeline, data formats, and algorithmic structure are the sa
 
 ![BiBiEQ DMA-banked accelerator diagram](docs/architecture.svg)
 
+## Signal/Bus-Level Diagram
+
+![BiBiEQ DMA-banked accelerator bus-level diagram](docs/architecture_bus.svg)
+
 ## Throughput-optimized (FAST) variant
 
 The paper at arXiv:1511.06530 focuses on **compressing CNNs** with rank selection (VBMF), Tucker decomposition, and fine‑tuning to reduce runtime/energy with a small accuracy loss.  
