@@ -5,6 +5,8 @@ RTL := rtl/lfsr16.v \
        rtl/segment_processor.v \
        rtl/ec_schedule_ctrl.v \
        rtl/bb_phase_router.v \
+       rtl/async_fifo.v \
+       rtl/dual_bank_async_fifo.v \
        rtl/dual_bank_fifo.v \
        rtl/segment_worker.v \
        rtl/dma_desc_fetch.v \

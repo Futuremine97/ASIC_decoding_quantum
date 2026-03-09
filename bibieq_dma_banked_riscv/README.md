@@ -119,6 +119,8 @@ If the even/odd banks are balanced and DMA is not the bottleneck, sustained thro
 - `rtl/posterior_calc.v`
 - `rtl/engine_exact.v`
 - `rtl/engine_approx.v`
+- `rtl/async_fifo.v` (CDC async FIFO, ready/valid)
+- `rtl/dual_bank_async_fifo.v` (even/odd async FIFO wrapper)
 - `rtl/segment_processor.v`
 - `rtl/lfsr16.v`
 - `rtl/dual_bank_fifo.v`
