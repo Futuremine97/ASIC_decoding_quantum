@@ -52,6 +52,21 @@ Notes:
 - Read bursts use `ARLEN = RD_BURST_LEN - 1` and `ARSIZE = log2(DATA_W/8)`.
 - Write path uses **single‑beat bursts** (AWLEN = 0). This is simple but not peak‑bandwidth optimal.
 
+## Cycles-per-second (throughput) metric
+
+Define a CPS-style throughput in **descriptors per second**:
+
+- `clk_hz`: SoC clock frequency in Hz
+- `cycles_per_desc`: measured cycles needed per descriptor (end-to-end)
+- `desc_per_cycle` = `1 / cycles_per_desc`
+- `desc_per_sec` = `clk_hz * desc_per_cycle`
+
+For a quick estimate, you can also use the **sustained descriptors/cycle** number:
+
+- `desc_per_sec` = `clk_hz * sustained_desc_per_cycle`
+
+If the even/odd banks are balanced and DMA is not the bottleneck, sustained throughput can approach **~2 descriptors/cycle**. If banking is imbalanced or memory backpressure is high, it will be closer to **~1 descriptor/cycle**.
+
 ## Directory structure
 
 ### Core modules (unchanged)
