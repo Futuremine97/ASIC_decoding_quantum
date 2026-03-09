@@ -4,13 +4,17 @@ module bibieq_dma_banked_riscv_top #(
     parameter COUNT_W = 16,
     parameter FIFO_DEPTH = 16,
     parameter FIFO_PTR_W = 4,
+    parameter INBUF_DEPTH = 4,
+    parameter INBUF_PTR_W = 2,
     parameter Q = 16,
     parameter MAX_SITES = 5,
     parameter L = 6,
     parameter M = 6,
     parameter UW = 4,
     parameter VW = 4,
-    parameter FAST_MODE = 0
+    parameter FAST_MODE = 0,
+    parameter FAST_MODE_EVEN = FAST_MODE,
+    parameter FAST_MODE_ODD  = FAST_MODE
 ) (
     input  wire                    aclk,
     input  wire                    aresetn,
@@ -144,13 +148,17 @@ module bibieq_dma_banked_riscv_top #(
         .COUNT_W(COUNT_W),
         .FIFO_DEPTH(FIFO_DEPTH),
         .FIFO_PTR_W(FIFO_PTR_W),
+        .INBUF_DEPTH(INBUF_DEPTH),
+        .INBUF_PTR_W(INBUF_PTR_W),
         .Q(Q),
         .MAX_SITES(MAX_SITES),
         .L(L),
         .M(M),
         .UW(UW),
         .VW(VW),
-        .FAST_MODE(FAST_MODE)
+        .FAST_MODE(FAST_MODE),
+        .FAST_MODE_EVEN(FAST_MODE_EVEN),
+        .FAST_MODE_ODD(FAST_MODE_ODD)
     ) u_core (
         .clk(aclk),
         .rst(core_rst),

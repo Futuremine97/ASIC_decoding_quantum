@@ -14,13 +14,32 @@ The core processing pipeline, data formats, and algorithmic structure are the sa
 
 ## Throughput-optimized (FAST) variant
 
-The paper at arXiv:1511.06530 focuses on **compressing CNNs** with rank selection (VBMF), Tucker decomposition, and fine‑tuning to reduce runtime/energy with a small accuracy loss. citeturn0view0  
-We apply the same high‑level idea—**approximate/compact computation for speed**—by providing a FAST mode that **disables the Exact engine** and outputs only the Approx path. This removes Exact‑path logic from the critical path, which can improve achievable clock/throughput at the cost of accuracy. citeturn0view0
+The paper at arXiv:1511.06530 focuses on **compressing CNNs** with rank selection (VBMF), Tucker decomposition, and fine‑tuning to reduce runtime/energy with a small accuracy loss.  
+We apply the same high‑level idea—**approximate/compact computation for speed**—by providing a FAST mode that **disables the Exact engine** and outputs only the Approx path. This removes Exact‑path logic from the critical path, which can improve achievable clock/throughput at the cost of accuracy.
 
 How to use:
 
 - Instantiate `rtl/bibieq_dma_banked_riscv_fast_top.v`, or
 - Set `FAST_MODE=1` on `rtl/bibieq_dma_banked_riscv_top.v`
+
+## Applied papers from SNU SHA (project-integrated)
+
+### 1) Bank‑aware prefetch buffering (multi‑bank memory management)
+
+The multi‑bank memory management work for CNN accelerators emphasizes **using multiple banks to reduce access delay** and **prefetching into available banks** to hide memory latency.  
+Applied here: `dual_bank_fifo` now includes **per‑bank input prefetch buffers** (`INBUF_DEPTH`, `INBUF_PTR_W`) that decouple DMA fetch from bank fullness. This reduces stall risk when a burst encounters an imbalanced even/odd pattern.
+
+### 2) Heterogeneous lane mapping (SDF scheduling on multiprocessors)
+
+The SDF‑based scheduling papers discuss **mapping dataflow graphs onto multiple (potentially heterogeneous) processors** and using scheduling strategies to improve throughput.  
+Applied here: the core now supports **per‑lane FAST/EXACT configuration** via `FAST_MODE_EVEN` and `FAST_MODE_ODD`, enabling a heterogeneous “fast+accurate” mapping if you want to trade accuracy for throughput asymmetrically.
+
+## References
+
+- “Compression of Deep Convolutional Neural Networks for Fast and Low Power Mobile Applications,” arXiv:1511.06530.
+- “Multi‑Bank On‑Chip Memory Management Techniques for CNN Accelerators,” *IEEE Transactions on Computers*, 2022.
+- “Hierarchical Scheduling of an SDF/L Graph onto Multiple Processors,” *ACM Transactions on Embedded Computing Systems*, 2022.
+- “Parallel Scheduling of Multiple SDF Graphs onto Heterogeneous Processors,” *IEEE Access*, 2021.
 
 ## Interfaces
 
