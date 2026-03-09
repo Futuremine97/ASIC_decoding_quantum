@@ -11,6 +11,7 @@ The core processing pipeline, data formats, and algorithmic structure are the sa
 
 - `rtl/bibieq_dma_banked_riscv_top.v`
 - `rtl/bibieq_dma_banked_riscv_fast_top.v` (FAST mode)
+- `rtl/bibieq_dma_banked_riscv_apb_top.v` (APB3 control)
 
 ## Architecture overview
 
@@ -72,6 +73,10 @@ A 32‑bit AXI4‑Lite slave provides configuration and status.
 - `0x14` **RESULT_BASE** (RW) — base address for results
 - `0x18` **EVEN_LEVEL** (RO) — even FIFO fill level (LSBs)
 - `0x1C` **ODD_LEVEL** (RO) — odd FIFO fill level (LSBs)
+
+### APB3 (control/status)
+
+APB3 slave provides the same register map and semantics as AXI‑Lite. Signals: `PADDR`, `PSEL`, `PENABLE`, `PWRITE`, `PWDATA`, `PRDATA`, `PREADY`, `PSLVERR`.
 
 **Start sequence**
 

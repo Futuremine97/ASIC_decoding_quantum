@@ -12,12 +12,14 @@ RTL := rtl/lfsr16.v \
        rtl/dma_result_writeback.v \
        rtl/bibieq_dma_banked_top.v \
        rtl/axi_lite_regs.v \
+       rtl/apb_regs.v \
        rtl/sync_2ff.v \
        rtl/reset_sync.v \
        rtl/axi_read_master.v \
        rtl/axi_write_master.v \
        rtl/bibieq_dma_banked_riscv_top.v \
-       rtl/bibieq_dma_banked_riscv_fast_top.v
+       rtl/bibieq_dma_banked_riscv_fast_top.v \
+       rtl/bibieq_dma_banked_riscv_apb_top.v
 
 all:
 	@echo "Targets: tb_fifo tb_top tb_riscv_axi tb_riscv_axi_fast"
