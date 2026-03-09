@@ -10,6 +10,17 @@ The core processing pipeline, data formats, and algorithmic structure are the sa
 ## Top module
 
 - `rtl/bibieq_dma_banked_riscv_top.v`
+- `rtl/bibieq_dma_banked_riscv_fast_top.v` (FAST mode)
+
+## Throughput-optimized (FAST) variant
+
+The paper at arXiv:1511.06530 focuses on **compressing CNNs** with rank selection (VBMF), Tucker decomposition, and fine‑tuning to reduce runtime/energy with a small accuracy loss. citeturn0view0  
+We apply the same high‑level idea—**approximate/compact computation for speed**—by providing a FAST mode that **disables the Exact engine** and outputs only the Approx path. This removes Exact‑path logic from the critical path, which can improve achievable clock/throughput at the cost of accuracy. citeturn0view0
+
+How to use:
+
+- Instantiate `rtl/bibieq_dma_banked_riscv_fast_top.v`, or
+- Set `FAST_MODE=1` on `rtl/bibieq_dma_banked_riscv_top.v`
 
 ## Interfaces
 
@@ -91,6 +102,7 @@ If the even/odd banks are balanced and DMA is not the bottleneck, sustained thro
 - `rtl/axi_read_master.v` — AXI4 read‑DMA bridge
 - `rtl/axi_write_master.v` — AXI4 write‑DMA bridge
 - `rtl/bibieq_dma_banked_riscv_top.v` — SoC‑ready top
+- `rtl/bibieq_dma_banked_riscv_fast_top.v` — SoC‑ready top (FAST mode)
 
 ## Data formats
 

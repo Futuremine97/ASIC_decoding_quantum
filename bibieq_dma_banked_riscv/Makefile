@@ -14,7 +14,8 @@ RTL := rtl/lfsr16.v \
        rtl/axi_lite_regs.v \
        rtl/axi_read_master.v \
        rtl/axi_write_master.v \
-       rtl/bibieq_dma_banked_riscv_top.v
+       rtl/bibieq_dma_banked_riscv_top.v \
+       rtl/bibieq_dma_banked_riscv_fast_top.v
 
 all:
 	@echo "Targets: tb_fifo tb_top"

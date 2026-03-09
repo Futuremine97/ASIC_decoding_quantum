@@ -1,6 +1,7 @@
 module segment_processor #(
     parameter Q = 16,
-    parameter MAX_SITES = 5
+    parameter MAX_SITES = 5,
+    parameter FAST_MODE = 0
 ) (
     input  wire [2:0]  r,
     input  wire        ds,
@@ -28,14 +29,22 @@ module segment_processor #(
         .a_bus(a_bus)
     );
 
-    engine_exact #(.Q(Q), .MAX_SITES(MAX_SITES)) u_exact (
-        .nsites(nsites),
-        .a_bus(a_bus),
-        .rand_u(rand_exact),
-        .fault_mask(exact_mask),
-        .first_hit_idx(exact_first_hit_idx),
-        .first_hit_valid(exact_first_hit_valid)
-    );
+    generate
+        if (FAST_MODE) begin : gen_fast_mode
+            assign exact_mask = {MAX_SITES{1'b0}};
+            assign exact_first_hit_idx = 3'd0;
+            assign exact_first_hit_valid = 1'b0;
+        end else begin : gen_full_mode
+            engine_exact #(.Q(Q), .MAX_SITES(MAX_SITES)) u_exact (
+                .nsites(nsites),
+                .a_bus(a_bus),
+                .rand_u(rand_exact),
+                .fault_mask(exact_mask),
+                .first_hit_idx(exact_first_hit_idx),
+                .first_hit_valid(exact_first_hit_valid)
+            );
+        end
+    endgenerate
 
     engine_approx #(.Q(Q), .MAX_SITES(MAX_SITES)) u_approx (
         .nsites(nsites),

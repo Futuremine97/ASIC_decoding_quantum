@@ -5,6 +5,7 @@ module segment_worker #(
     parameter VW = 4,
     parameter L = 6,
     parameter M = 6,
+    parameter FAST_MODE = 0,
     parameter SEED0 = 16'h1234,
     parameter SEED1 = 16'h2345,
     parameter SEED2 = 16'h3456,
@@ -114,7 +115,7 @@ module segment_worker #(
         .z_v(z_v)
     );
 
-    segment_processor #(.Q(Q), .MAX_SITES(MAX_SITES)) u_seg (
+    segment_processor #(.Q(Q), .MAX_SITES(MAX_SITES), .FAST_MODE(FAST_MODE)) u_seg (
         .r(r),
         .ds(ds),
         .e_q(e_q),
