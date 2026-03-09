@@ -1,4 +1,4 @@
-# BiBiEQ DMA-banked accelerator (RISC‑V AXI integration)
+# BiBiEQ-inspired DMA-banked accelerator (RISC‑V AXI integration)
 
 This is the **RISC‑V SoC–friendly** version of the BiBiEQ-inspired Verilog project. It keeps the same banked FIFO + dual worker core but wraps it with:
 
@@ -15,11 +15,11 @@ The core processing pipeline, data formats, and algorithmic structure are the sa
 
 ## Architecture overview
 
-![BiBiEQ DMA-banked accelerator diagram](docs/architecture.svg)
+![BiBiEQ-inspired DMA-banked accelerator diagram](docs/architecture.svg)
 
 ## Signal/Bus-Level Diagram
 
-![BiBiEQ DMA-banked accelerator bus-level diagram](docs/architecture_bus.svg)
+![BiBiEQ-inspired DMA-banked accelerator bus-level diagram](docs/architecture_bus.svg)
 
 ## Throughput-optimized (FAST) variant
 
