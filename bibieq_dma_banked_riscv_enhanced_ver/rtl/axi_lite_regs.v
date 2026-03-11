@@ -59,8 +59,9 @@ module axi_lite_regs #(
     wire read_fire;
 
     // Ready signals
-    assign s_axi_awready = ~aw_hold & ~s_axi_bvalid;
-    assign s_axi_wready  = ~w_hold & ~s_axi_bvalid;
+    // Allow one outstanding response while capturing the next write (1-entry buffering).
+    assign s_axi_awready = ~aw_hold;
+    assign s_axi_wready  = ~w_hold;
     assign s_axi_arready = ~s_axi_rvalid;
 
     assign write_fire = aw_hold & w_hold & ~s_axi_bvalid;

@@ -199,55 +199,70 @@ module tb_bibieq_dma_banked_riscv_axi;
         input [31:0] data;
         integer wait_ctr;
         begin : axil_wr
-            @(posedge aclk);
+            // Address phase
+            @(negedge aclk);
             s_axi_awaddr  = addr;
             s_axi_awvalid = 1'b1;
+            s_axi_wvalid  = 1'b0;
+
+            wait_ctr = 0;
+            while (1) begin
+                @(posedge aclk);
+                wait_ctr = wait_ctr + 1;
+                if (s_axi_awready && s_axi_awvalid)
+                    break;
+                if (wait_ctr > 1000) begin
+                    $display("ERROR: AXI-Lite AWREADY timeout (awready=%b bvalid=%b aw_hold=%b)",
+                             s_axi_awready, s_axi_bvalid, dut.u_regs.aw_hold);
+                    error_count = error_count + 1;
+                    dump_dut_state();
+                    disable axil_wr;
+                end
+            end
+            @(negedge aclk);
+            s_axi_awvalid = 1'b0;
+
+            // Data phase
+            @(negedge aclk);
             s_axi_wdata   = data;
             s_axi_wstrb   = 4'hF;
             s_axi_wvalid  = 1'b1;
 
             wait_ctr = 0;
-            while (!s_axi_awready) begin
-                wait_ctr = wait_ctr + 1;
-                if (wait_ctr > 1000) begin
-                    $display("ERROR: AXI-Lite AWREADY timeout (awready=%b bvalid=%b aw_hold=%b)",
-                             s_axi_awready, s_axi_bvalid, dut.u_regs.aw_hold);
-                    error_count = error_count + 1;
-                    disable axil_wr;
-                end
+            while (1) begin
                 @(posedge aclk);
-            end
-            @(posedge aclk);
-            s_axi_awvalid = 1'b0;
-
-            wait_ctr = 0;
-            while (!s_axi_wready) begin
                 wait_ctr = wait_ctr + 1;
+                if (s_axi_wready && s_axi_wvalid)
+                    break;
                 if (wait_ctr > 1000) begin
                     $display("ERROR: AXI-Lite WREADY timeout (wready=%b bvalid=%b w_hold=%b)",
                              s_axi_wready, s_axi_bvalid, dut.u_regs.w_hold);
                     error_count = error_count + 1;
+                    dump_dut_state();
                     disable axil_wr;
                 end
-                @(posedge aclk);
             end
-            @(posedge aclk);
+            @(negedge aclk);
             s_axi_wvalid = 1'b0;
 
+            @(negedge aclk);
             s_axi_bready = 1'b1;
             wait_ctr = 0;
-            while (!s_axi_bvalid) begin
+            while (1) begin
+                @(posedge aclk);
                 wait_ctr = wait_ctr + 1;
+                if (s_axi_bvalid && s_axi_bready)
+                    break;
                 if (wait_ctr > 1000) begin
                     $display("ERROR: AXI-Lite BVALID timeout (awready=%b wready=%b bvalid=%b aw_hold=%b w_hold=%b)",
                              s_axi_awready, s_axi_wready, s_axi_bvalid,
                              dut.u_regs.aw_hold, dut.u_regs.w_hold);
                     error_count = error_count + 1;
+                    dump_dut_state();
                     disable axil_wr;
                 end
-                @(posedge aclk);
             end
-            @(posedge aclk);
+            @(negedge aclk);
             s_axi_bready = 1'b0;
         end
     endtask
@@ -258,36 +273,43 @@ module tb_bibieq_dma_banked_riscv_axi;
         output [31:0] data;
         integer wait_ctr;
         begin : axil_rd
-            @(posedge aclk);
+            @(negedge aclk);
             s_axi_araddr  = addr;
             s_axi_arvalid = 1'b1;
             wait_ctr = 0;
-            while (!s_axi_arready) begin
+            while (1) begin
+                @(posedge aclk);
                 wait_ctr = wait_ctr + 1;
+                if (s_axi_arready && s_axi_arvalid)
+                    break;
                 if (wait_ctr > 1000) begin
                     $display("ERROR: AXI-Lite ARREADY timeout");
                     error_count = error_count + 1;
+                    dump_dut_state();
                     disable axil_rd;
                 end
-                @(posedge aclk);
             end
-            @(posedge aclk);
+            @(negedge aclk);
             s_axi_arvalid = 1'b0;
 
+            @(negedge aclk);
             s_axi_rready = 1'b1;
             wait_ctr = 0;
-            while (!s_axi_rvalid) begin
+            while (1) begin
+                @(posedge aclk);
                 wait_ctr = wait_ctr + 1;
+                if (s_axi_rvalid && s_axi_rready)
+                    break;
                 if (wait_ctr > 1000) begin
                     $display("ERROR: AXI-Lite RVALID timeout (arready=%b rvalid=%b)",
                              s_axi_arready, s_axi_rvalid);
                     error_count = error_count + 1;
+                    dump_dut_state();
                     disable axil_rd;
                 end
-                @(posedge aclk);
             end
             data = s_axi_rdata;
-            @(posedge aclk);
+            @(negedge aclk);
             s_axi_rready = 1'b0;
         end
     endtask
@@ -323,6 +345,32 @@ module tb_bibieq_dma_banked_riscv_axi;
             $display("backpressure cycles: rd=%0d wr=%0d", cov_bp_r, cov_bp_w);
             $display("fifo high watermark hits: even=%0d odd=%0d", cov_fifo_even_hi, cov_fifo_odd_hi);
             $display("========================\n");
+        end
+    endtask
+
+    task dump_dut_state;
+        begin
+            $display("---- DUT STATE @ cycle %0d ----", cycle_ctr);
+            $display("AXI-Lite: awv=%b awr=%b wv=%b wr=%b bv=%b br=%b arv=%b arr=%b rv=%b rr=%b",
+                     s_axi_awvalid, s_axi_awready, s_axi_wvalid, s_axi_wready,
+                     s_axi_bvalid, s_axi_bready, s_axi_arvalid, s_axi_arready,
+                     s_axi_rvalid, s_axi_rready);
+            $display("AXI-Lite holds: aw_hold=%b w_hold=%b",
+                     dut.u_regs.aw_hold, dut.u_regs.w_hold);
+            $display("REGS: desc_base=0x%08x desc_count=%0d rd_burst=%0d result_base=0x%08x",
+                     dut.desc_base, dut.desc_count, dut.rd_burst_len, dut.result_base);
+            $display("STATUS: busy=%b done=%b fetch_done=%b store_done=%b fifo_even=%0d fifo_odd=%0d",
+                     dut.busy, dut.done, dut.fetch_done, dut.store_done, dut.fifo_even_level, dut.fifo_odd_level);
+            $display("FETCH: busy=%b done=%b remaining=%0d inflight=%0d rd_cmd_v=%b rd_cmd_r=%b",
+                     dut.u_core.fetch_busy, dut.u_core.fetch_done,
+                     dut.u_core.u_fetch.remaining_r, dut.u_core.u_fetch.inflight_beats_r,
+                     dut.u_core.rd_cmd_valid, dut.u_core.rd_cmd_ready);
+            $display("READ AXI: arvalid=%b arready=%b rvalid=%b rready=%b rlast=%b",
+                     dut.u_axi_read.m_axi_arvalid, m_axi_arready, m_axi_rvalid, m_axi_rready, m_axi_rlast);
+            $display("STORE: busy=%b done=%b remaining=%0d wvalid=%b wready=%b",
+                     dut.u_core.store_busy, dut.u_core.store_done,
+                     dut.u_core.u_store.remaining_r, dut.u_core.mem_wvalid, dut.u_core.mem_wready);
+            $display("--------------------------------");
         end
     endtask
 
@@ -468,6 +516,7 @@ module tb_bibieq_dma_banked_riscv_axi;
         if (status[1] == 1'b0) begin
             $display("ERROR: timeout waiting for DONE");
             error_count = error_count + 1;
+            dump_dut_state();
         end
 
         // final checks
@@ -517,6 +566,7 @@ module tb_bibieq_dma_banked_riscv_axi;
     initial begin
         #2000000;
         $display("ERROR: SIM TIMEOUT");
+        dump_dut_state();
         $finish;
     end
 

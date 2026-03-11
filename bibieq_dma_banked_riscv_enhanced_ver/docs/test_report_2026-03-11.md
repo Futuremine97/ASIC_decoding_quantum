@@ -9,12 +9,12 @@
 2. `make tb_top`
 3. `make tb_riscv_axi`
 
-## Results Summary
+## Latest Results Summary
 - `tb_fifo`: PASS
 - `tb_top`: PASS
-- `tb_riscv_axi`: FAIL
+- `tb_riscv_axi`: PASS
 
-## Detailed Results
+## Detailed Results (Latest Run)
 
 ### tb_fifo
 - Outcome: PASS
@@ -25,27 +25,22 @@
 - Last line: `tb/tb_bibieq_dma_banked_top.v:90: $finish called at 335000 (1ps)`
 
 ### tb_riscv_axi
-- Outcome: FAIL
-- Errors observed:
-  - AXI-Lite handshake timeouts:
-    - `ERROR: AXI-Lite WREADY timeout (wready=0 bvalid=1 w_hold=0)`
-    - `ERROR: AXI-Lite AWREADY timeout (awready=0 bvalid=1 aw_hold=0)` (repeated)
-  - Control flow timeout:
-    - `ERROR: timeout waiting for DONE`
-  - Scoreboard mismatches:
-    - `ERROR: write_count 0 != desc_count 31`
-    - `ERROR: result seg_idx set mismatch`
-- Coverage summary printed (selected):
+- Outcome: PASS
+- Coverage summary (selected):
   - parity/use_4ec/ds bins covered
-  - `phase[5..7]` and `r[5..7]` bins remain zero
-  - burst bins only hit `other`
-- Final line: `TEST FAILED with 8 error(s)`
+  - phase bins 0..7 hit at least once
+  - r bins 0..4 hit at least once (r[5..7] remain zero as expected)
+  - burst bins hit: `other`
+- Last line: `TEST PASSED (FAST_MODE=0)`
 
-## Notes / Suspected Root Cause
-- AXI-Lite write responses appear to stall: `bvalid` stays asserted, which holds `awready`/`wready` low in `axi_lite_regs.v`. This blocks subsequent register writes and prevents `START` from reliably issuing.
-- Testbench now contains explicit AXI-Lite timeouts and a simulation watchdog to avoid indefinite hangs.
+## Changes Applied To Fix AXI-Lite Handshake
+- `rtl/axi_lite_regs.v`
+  - Ready logic updated to allow a 1-entry buffered write while a response is pending.
+- `tb/tb_bibieq_dma_banked_riscv_axi.v`
+  - AXI-Lite tasks drive on `negedge` and sample on `posedge` to avoid race conditions.
+  - Write sequence changed to AW first, then W to avoid address/data mismatches.
+  - Internal debug task (`dump_dut_state`) added for failure triage.
 
-## Files Touched During Run
-- `Makefile` (Icarus flags: `-g2012`, include path `-I rtl`)
-- `tb/tb_bibieq_dma_banked_riscv_axi.v` (timeouts + watchdog + minor task robustness)
-
+## Prior Failure (Before Fixes)
+- `tb_riscv_axi` previously failed with AXI-Lite handshake timeouts and DONE timeout.
+- Root cause: TB/DUT race on AW/W handshakes leading to stuck holds and mismatched writes.
