@@ -30,19 +30,19 @@ all:
 	@echo "Targets: tb_fifo tb_top tb_riscv_axi tb_riscv_axi_fast"
 
 tb_fifo:
-	iverilog -g2005 -o sim_fifo $(RTL) tb/tb_dual_bank_fifo.v
+	iverilog -g2012 -I rtl -o sim_fifo $(RTL) tb/tb_dual_bank_fifo.v
 	vvp sim_fifo
 
 tb_top:
-	iverilog -g2005 -o sim_top $(RTL) tb/tb_bibieq_dma_banked_top.v
+	iverilog -g2012 -I rtl -o sim_top $(RTL) tb/tb_bibieq_dma_banked_top.v
 	vvp sim_top
 
 tb_riscv_axi:
-	iverilog -g2005 -o sim_riscv_axi $(RTL) tb/tb_bibieq_dma_banked_riscv_axi.v
+	iverilog -g2012 -I rtl -o sim_riscv_axi $(RTL) tb/tb_bibieq_dma_banked_riscv_axi.v
 	vvp sim_riscv_axi
 
 tb_riscv_axi_fast:
-	iverilog -g2005 -o sim_riscv_axi_fast $(RTL) -P tb_bibieq_dma_banked_riscv_axi.FAST_MODE=1 tb/tb_bibieq_dma_banked_riscv_axi.v
+	iverilog -g2012 -I rtl -o sim_riscv_axi_fast $(RTL) -P tb_bibieq_dma_banked_riscv_axi.FAST_MODE=1 tb/tb_bibieq_dma_banked_riscv_axi.v
 	vvp sim_riscv_axi_fast
 
 clean:

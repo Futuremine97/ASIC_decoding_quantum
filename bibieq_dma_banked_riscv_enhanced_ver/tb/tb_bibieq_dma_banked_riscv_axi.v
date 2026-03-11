@@ -197,27 +197,58 @@ module tb_bibieq_dma_banked_riscv_axi;
     task axi_lite_write;
         input [ADDR_W-1:0] addr;
         input [31:0] data;
-        begin
+        integer wait_ctr;
+        begin : axil_wr
             @(posedge aclk);
-            s_axi_awaddr  <= addr;
-            s_axi_awvalid <= 1'b1;
-            s_axi_wdata   <= data;
-            s_axi_wstrb   <= 4'hF;
-            s_axi_wvalid  <= 1'b1;
+            s_axi_awaddr  = addr;
+            s_axi_awvalid = 1'b1;
+            s_axi_wdata   = data;
+            s_axi_wstrb   = 4'hF;
+            s_axi_wvalid  = 1'b1;
 
-            while (!s_axi_awready)
+            wait_ctr = 0;
+            while (!s_axi_awready) begin
+                wait_ctr = wait_ctr + 1;
+                if (wait_ctr > 1000) begin
+                    $display("ERROR: AXI-Lite AWREADY timeout (awready=%b bvalid=%b aw_hold=%b)",
+                             s_axi_awready, s_axi_bvalid, dut.u_regs.aw_hold);
+                    error_count = error_count + 1;
+                    disable axil_wr;
+                end
                 @(posedge aclk);
-            s_axi_awvalid <= 1'b0;
-
-            while (!s_axi_wready)
-                @(posedge aclk);
-            s_axi_wvalid <= 1'b0;
-
-            s_axi_bready <= 1'b1;
-            while (!s_axi_bvalid)
-                @(posedge aclk);
+            end
             @(posedge aclk);
-            s_axi_bready <= 1'b0;
+            s_axi_awvalid = 1'b0;
+
+            wait_ctr = 0;
+            while (!s_axi_wready) begin
+                wait_ctr = wait_ctr + 1;
+                if (wait_ctr > 1000) begin
+                    $display("ERROR: AXI-Lite WREADY timeout (wready=%b bvalid=%b w_hold=%b)",
+                             s_axi_wready, s_axi_bvalid, dut.u_regs.w_hold);
+                    error_count = error_count + 1;
+                    disable axil_wr;
+                end
+                @(posedge aclk);
+            end
+            @(posedge aclk);
+            s_axi_wvalid = 1'b0;
+
+            s_axi_bready = 1'b1;
+            wait_ctr = 0;
+            while (!s_axi_bvalid) begin
+                wait_ctr = wait_ctr + 1;
+                if (wait_ctr > 1000) begin
+                    $display("ERROR: AXI-Lite BVALID timeout (awready=%b wready=%b bvalid=%b aw_hold=%b w_hold=%b)",
+                             s_axi_awready, s_axi_wready, s_axi_bvalid,
+                             dut.u_regs.aw_hold, dut.u_regs.w_hold);
+                    error_count = error_count + 1;
+                    disable axil_wr;
+                end
+                @(posedge aclk);
+            end
+            @(posedge aclk);
+            s_axi_bready = 1'b0;
         end
     endtask
 
@@ -225,20 +256,39 @@ module tb_bibieq_dma_banked_riscv_axi;
     task axi_lite_read;
         input  [ADDR_W-1:0] addr;
         output [31:0] data;
-        begin
+        integer wait_ctr;
+        begin : axil_rd
             @(posedge aclk);
-            s_axi_araddr  <= addr;
-            s_axi_arvalid <= 1'b1;
-            while (!s_axi_arready)
+            s_axi_araddr  = addr;
+            s_axi_arvalid = 1'b1;
+            wait_ctr = 0;
+            while (!s_axi_arready) begin
+                wait_ctr = wait_ctr + 1;
+                if (wait_ctr > 1000) begin
+                    $display("ERROR: AXI-Lite ARREADY timeout");
+                    error_count = error_count + 1;
+                    disable axil_rd;
+                end
                 @(posedge aclk);
-            s_axi_arvalid <= 1'b0;
+            end
+            @(posedge aclk);
+            s_axi_arvalid = 1'b0;
 
-            s_axi_rready <= 1'b1;
-            while (!s_axi_rvalid)
+            s_axi_rready = 1'b1;
+            wait_ctr = 0;
+            while (!s_axi_rvalid) begin
+                wait_ctr = wait_ctr + 1;
+                if (wait_ctr > 1000) begin
+                    $display("ERROR: AXI-Lite RVALID timeout (arready=%b rvalid=%b)",
+                             s_axi_arready, s_axi_rvalid);
+                    error_count = error_count + 1;
+                    disable axil_rd;
+                end
                 @(posedge aclk);
+            end
             data = s_axi_rdata;
             @(posedge aclk);
-            s_axi_rready <= 1'b0;
+            s_axi_rready = 1'b0;
         end
     endtask
 
@@ -394,6 +444,8 @@ module tb_bibieq_dma_banked_riscv_axi;
         // release reset
         repeat (5) @(posedge aclk);
         aresetn <= 1'b1;
+        // wait a few cycles for sync reset deassert inside DUT
+        repeat (3) @(posedge aclk);
 
         // program registers
         axi_lite_write(32'h08, 32'd0);                 // DESC_BASE
@@ -448,7 +500,7 @@ module tb_bibieq_dma_banked_riscv_axi;
             end
 
             if (cov_fail != 0) begin
-                $display(\"ERROR: coverage goals not met (%0d bins missing)\", cov_fail);
+                $display("ERROR: coverage goals not met (%0d bins missing)", cov_fail);
                 error_count = error_count + 1;
             end
         end
@@ -459,6 +511,13 @@ module tb_bibieq_dma_banked_riscv_axi;
             $display("TEST FAILED with %0d error(s)", error_count);
 
         #50 $finish;
+    end
+
+    // Simulation watchdog
+    initial begin
+        #2000000;
+        $display("ERROR: SIM TIMEOUT");
+        $finish;
     end
 
     // Ready/valid backpressure generation and coverage sampling
