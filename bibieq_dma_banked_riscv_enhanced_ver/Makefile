@@ -1,3 +1,5 @@
+VVP_ARGS ?=
+
 RTL := rtl/lfsr16.v \
        rtl/posterior_calc.v \
        rtl/engine_exact.v \
@@ -31,19 +33,19 @@ all:
 
 tb_fifo:
 	iverilog -g2012 -I rtl -o sim_fifo $(RTL) tb/tb_dual_bank_fifo.v
-	vvp sim_fifo
+	vvp sim_fifo $(VVP_ARGS)
 
 tb_top:
 	iverilog -g2012 -I rtl -o sim_top $(RTL) tb/tb_bibieq_dma_banked_top.v
-	vvp sim_top
+	vvp sim_top $(VVP_ARGS)
 
 tb_riscv_axi:
 	iverilog -g2012 -I rtl -o sim_riscv_axi $(RTL) tb/tb_bibieq_dma_banked_riscv_axi.v
-	vvp sim_riscv_axi
+	vvp sim_riscv_axi $(VVP_ARGS)
 
 tb_riscv_axi_fast:
 	iverilog -g2012 -I rtl -o sim_riscv_axi_fast $(RTL) -P tb_bibieq_dma_banked_riscv_axi.FAST_MODE=1 tb/tb_bibieq_dma_banked_riscv_axi.v
-	vvp sim_riscv_axi_fast
+	vvp sim_riscv_axi_fast $(VVP_ARGS)
 
 clean:
 	rm -f sim_fifo sim_top sim_riscv_axi sim_riscv_axi_fast

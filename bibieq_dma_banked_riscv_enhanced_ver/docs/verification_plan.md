@@ -23,6 +23,7 @@ Minimum targets for a single test run (AXI testbench):
 
 - `tb/tb_dual_bank_fifo.v` - basic FIFO sanity
 - `tb/tb_bibieq_dma_banked_riscv_axi.v` - AXI-Lite + AXI DMA + coverage counters
+- `tb/tb_bibieq_dma_banked_riscv_axi.v` can optionally load descriptors from a Stim-derived `.hex` file (see `stim/README.md`)
 
 ## CDC Checklist
 

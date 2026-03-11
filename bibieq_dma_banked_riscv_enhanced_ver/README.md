@@ -209,7 +209,7 @@ It provides:
 - AXI-Lite register programming and polling
 - AXI read/write memory model with backpressure
 - Scoreboard checks (result count, address ordering, seg_idx set, FAST-mode exact fields)
- - Coverage counters with pass/fail gating (see `docs/verification_plan.md`)
+- Coverage counters with pass/fail gating (see `docs/verification_plan.md`)
 - Coverage counters for parity, `use_4ec`, `phase`, `r`, `ds`, burst bins, FIFO high-watermark hits, and backpressure cycles
 
 Run:
@@ -222,6 +222,10 @@ Optional plusargs:
 - `+DESC_COUNT=...`
 - `+BURST_LEN=...`
 - `+SEED=...`
+
+## Stim-driven descriptors (paper-inspired)
+
+The BiBiEQ paper describes a parameterized generator for seven-phase BB memory circuits in Stim with schedule-aware EC insertion. This repo adds a small bridge to convert a Stim circuit into descriptor streams for the AXI testbench (see `stim/README.md`). citeturn6open0
 
 ## Software (MMIO Drivers)
 

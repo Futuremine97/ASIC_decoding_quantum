@@ -135,6 +135,8 @@ module tb_bibieq_dma_banked_riscv_axi;
     integer status;
     integer timeout;
     integer w_idx;
+    string desc_file;
+    bit use_desc_file;
 
     integer cov_even;
     integer cov_odd;
@@ -427,7 +429,14 @@ module tb_bibieq_dma_banked_riscv_axi;
         if (!$value$plusargs("SEED=%d", seed))
             seed = 32'h13579BDF;
 
-        if (!$value$plusargs("DESC_COUNT=%d", desc_count)) begin
+        use_desc_file = 1'b0;
+        if ($value$plusargs("DESC_FILE=%s", desc_file)) begin
+            use_desc_file = 1'b1;
+            if (!$value$plusargs("DESC_COUNT=%d", desc_count)) begin
+                desc_count = MAX_DESC;
+                $display("WARN: DESC_FILE set but DESC_COUNT missing, defaulting to %0d", MAX_DESC);
+            end
+        end else if (!$value$plusargs("DESC_COUNT=%d", desc_count)) begin
             seed = $random(seed);
             desc_count = (seed % 24) + 8; // 8..31
         end
@@ -435,8 +444,12 @@ module tb_bibieq_dma_banked_riscv_axi;
             desc_count = MAX_DESC;
 
         if (!$value$plusargs("BURST_LEN=%d", rd_burst_len)) begin
-            seed = $random(seed);
-            rd_burst_len = (seed % 8) + 1; // 1..8
+            if (use_desc_file) begin
+                rd_burst_len = (desc_count < 8) ? desc_count : 8;
+            end else begin
+                seed = $random(seed);
+                rd_burst_len = (seed % 8) + 1; // 1..8
+            end
         end
         if (rd_burst_len > desc_count)
             rd_burst_len = desc_count;
@@ -459,34 +472,54 @@ module tb_bibieq_dma_banked_riscv_axi;
             result_mem[i] = 64'd0;
         end
 
-        // create randomized descriptors
-        for (i = 0; i < desc_count; i = i + 1) begin
-            gen_seg_idx = i[7:0];
-            seed = $random(seed);
-            gen_use_4ec = seed[0];
-            seed = $random(seed);
-            gen_phase = seed[2:0];
-            seed = $random(seed);
-            gen_r = seed[2:0] % 5;
-            seed = $random(seed);
-            gen_ds = seed[0];
-            seed = $random(seed);
-            gen_e_q = seed[15:0];
-            seed = $random(seed);
-            gen_q_q = seed[15:0];
-            seed = $random(seed);
-            gen_u = seed[3:0];
-            gen_v = seed[7:4];
+        if (use_desc_file) begin
+            $readmemh(desc_file, desc_mem);
+            for (i = 0; i < desc_count; i = i + 1) begin
+                gen_seg_idx = desc_mem[i][63:56];
+                gen_use_4ec = desc_mem[i][55];
+                gen_phase = desc_mem[i][54:52];
+                gen_r = desc_mem[i][51:49];
+                gen_ds = desc_mem[i][48];
 
-            desc_mem[i] = {gen_seg_idx, gen_use_4ec, gen_phase, gen_r, gen_ds, gen_e_q, gen_q_q, gen_u, gen_v, 8'd0};
-            expected_mask[gen_seg_idx] = 1'b1;
+                expected_mask[gen_seg_idx] = 1'b1;
 
-            // coverage updates
-            if (gen_seg_idx[0]) cov_odd = cov_odd + 1; else cov_even = cov_even + 1;
-            if (gen_use_4ec) cov_use4ec1 = cov_use4ec1 + 1; else cov_use4ec0 = cov_use4ec0 + 1;
-            cov_phase[gen_phase] = cov_phase[gen_phase] + 1;
-            cov_r[gen_r] = cov_r[gen_r] + 1;
-            if (gen_ds) cov_ds1 = cov_ds1 + 1; else cov_ds0 = cov_ds0 + 1;
+                // coverage updates
+                if (gen_seg_idx[0]) cov_odd = cov_odd + 1; else cov_even = cov_even + 1;
+                if (gen_use_4ec) cov_use4ec1 = cov_use4ec1 + 1; else cov_use4ec0 = cov_use4ec0 + 1;
+                cov_phase[gen_phase] = cov_phase[gen_phase] + 1;
+                cov_r[gen_r] = cov_r[gen_r] + 1;
+                if (gen_ds) cov_ds1 = cov_ds1 + 1; else cov_ds0 = cov_ds0 + 1;
+            end
+        end else begin
+            // create randomized descriptors
+            for (i = 0; i < desc_count; i = i + 1) begin
+                gen_seg_idx = i[7:0];
+                seed = $random(seed);
+                gen_use_4ec = seed[0];
+                seed = $random(seed);
+                gen_phase = seed[2:0];
+                seed = $random(seed);
+                gen_r = seed[2:0] % 5;
+                seed = $random(seed);
+                gen_ds = seed[0];
+                seed = $random(seed);
+                gen_e_q = seed[15:0];
+                seed = $random(seed);
+                gen_q_q = seed[15:0];
+                seed = $random(seed);
+                gen_u = seed[3:0];
+                gen_v = seed[7:4];
+
+                desc_mem[i] = {gen_seg_idx, gen_use_4ec, gen_phase, gen_r, gen_ds, gen_e_q, gen_q_q, gen_u, gen_v, 8'd0};
+                expected_mask[gen_seg_idx] = 1'b1;
+
+                // coverage updates
+                if (gen_seg_idx[0]) cov_odd = cov_odd + 1; else cov_even = cov_even + 1;
+                if (gen_use_4ec) cov_use4ec1 = cov_use4ec1 + 1; else cov_use4ec0 = cov_use4ec0 + 1;
+                cov_phase[gen_phase] = cov_phase[gen_phase] + 1;
+                cov_r[gen_r] = cov_r[gen_r] + 1;
+                if (gen_ds) cov_ds1 = cov_ds1 + 1; else cov_ds0 = cov_ds0 + 1;
+            end
         end
 
         // release reset
